@@ -1,0 +1,49 @@
+[project]
+name = "llm4rec"
+description = "Large Language Model based Recommender System"
+version = "0.0.1"
+authors = [
+    { name = "SeokWoo Kang", email = "pko89403@gmail.com" }
+]
+requires-python = ">=3.10, <3.12"
+dependencies = [
+    # general ebnerd-benchmark
+    "pydantic",
+    "py-cpuinfo",
+    "transformers>=4.41.0.dev0",
+    "tensorflow>=2.12.0, <2.16.0",
+    "torch>=2.0.0, <2.3.0",
+    "scikit-learn",
+    "numpy>=1.24.0",
+    "polars",
+    "pyyaml",
+    "tqdm",
+    # additional packages
+    "datasets",
+    "accelerate",
+    "trl",
+    "peft",
+    "plotly",
+    "matplotlib",
+    "omegaconf",
+    "pytest",
+    "deepspeed>=0.14.2",
+    # llm
+    "langchain"
+]
+
+[project.optional-dependencies]
+# pip install "my_project[extras]"
+# pip install -e .'[notebooks]'
+
+notebooks = [
+    "transformers", 
+    "jupyter"
+]
+
+tests =[
+    "pytest", 
+    "transformers>=4.38.0", 
+    "tensorflow>=2.12.0, <2.16.0",
+    "torch>=2.0.0, <2.3.0",
+]
