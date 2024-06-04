@@ -1,0 +1,1 @@
+from macrec.utils.init import init_all_seeds
