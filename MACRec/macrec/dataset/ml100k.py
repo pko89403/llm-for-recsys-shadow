@@ -1,0 +1,176 @@
+import os
+import random
+import subprocess
+import pandas as pd
+import numpy as np
+from loguru import logger
+from langchain.prompts import PromptTemplate
+
+
+def download_data(dir: str):
+    """Download the ml-100k dataset into the specified directory.
+
+    Args:
+        dir (str): The directory where the dataset will be downloaded.
+    """
+    raw_path = os.path.join(dir, "raw_data")
+    os.makedirs(raw_path, exist_ok=True)
+    if not os.path.exists(os.path.join(raw_path, 'ml-100k.zip')):
+        logger.info("Downloading ml-100k dataset into " + raw_path)
+        subprocess.call(
+            f'cd {raw_path} && curl -O http://files.grouplens.org/datasets/movielens/ml-100k.zip', shell=True
+        )
+    if not os.path.exists(os.path.join(raw_path, 'u.data')):
+        logger.info('Unzipping ml-100k dataset into ' + raw_path)
+        subprocess.call(
+            f"cd {raw_path} && unzip ml-100k.zip", shell=True
+        )
+        # Move files to raw_data directory
+        subprocess.call(
+            f"cd {raw_path} && mv ml-100k/* . && rm -r ml-100k", shell=True
+        )
+
+
+def read_data(dir: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    with open(os.path.join(dir, "u.data"), "r") as f:
+        data_df = pd.read_csv(f, sep="\t", header=None)
+    with open(os.path.join(dir, "u.item"), "r", encoding="ISO-8859-1") as f:
+        item_df = pd.read_csv(f, sep="|", header=None, encoding="ISO-8859-1")
+    with open(os.path.join(dir, "u.user"), "r") as f:
+        user_df = pd.read_csv(f, sep="|", header=None)
+    with open(os.path.join(dir, "u.genre"), "r") as f:
+        genre_df = pd.read_csv(f, sep="|", header=None)
+    return data_df, item_df, user_df, genre_df
+
+
+def process_user_data(user_df: pd.DataFrame) -> pd.DataFrame:
+    """유저 데이터를 처리합니다. + 사용자 프로필을 만듭니다.
+
+    Args:
+        user_df (pd.DataFrame): 처리할 유저 데이터입니다.
+
+    Returns:
+        pd.DataFrame: 처리된 유저 데이터입니다.
+    """
+    user_df.columns = ["user_id", "age", "gender", "occupation", "zip_code"]
+    user_df = user_df.drop(columns=["zip_code"])
+    user_df = user_df.set_index("user_id")
+    # Update M and F into male and female
+    user_df["gender"] = user_df["gender"].apply(lambda x: "male" if x == "M" else "female")
+    # set a user profile column to be a string contain all the user information with a template
+    input_variables = user_df.columns.to_list()
+    template = PromptTemplate(
+        template="Age: {age}\nGender: {gender}\nOccupation: {occupation}",
+        input_variables=input_variables
+    )
+    user_df["user_profile"] = user_df[input_variables].apply(lambda x: template.format(**x), axis=1)
+
+    for col in user_df.columns.to_list():
+        user_df[col] = user_df[col].apply(lambda x: "None" if x == "" else x)
+    return user_df
+
+
+def process_item_data(item_df: pd.DataFrame) -> pd.DataFrame:
+    """아이템 데이터를 처리합니다. + 아이템 속성을 만듭니다.
+
+    Args:
+        item_df (pd.DataFrame): 처리할 아이템 데이터입니다.
+
+    Returns:
+        pd.DataFrame: 처리된 아이템 데이터입니다.
+    """
+    item_df.columns = ['item_id', 'title', 'release_date', 'video_release_date',
+                    'IMDb_URL', 'unknown', 'Action', 'Adventure', 'Animation',
+                    'Childrens', 'Comedy', 'Crime', 'Documentary', 'Drama',
+                    'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery',
+                    'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+    item_df = item_df.drop(columns=["IMDb_URL"])
+    item_df = item_df.set_index("item_id")
+    # set video_release_data to unknown if it is null
+    item_df["video_release_date"] = item_df["video_release_date"].fillna("unknown")
+    # set release_date to unknown if it is null
+    item_df["release_date"] = item_df["release_date"].fillna("unknown")
+    # set the genre to be a list of genres
+    genres = item_df.columns.to_list()[5:] # 'unknown', 'Action', 'Adventure', ...
+    def get_genre(x: pd.Series) -> list[str]:
+        return "|".join([genre for genre, value in x.items() if value == 1])
+    item_df["genre"] = item_df[genres].apply(lambda x: get_genre(x), axis=1)
+    # set a item attributes column to be a string contain all the item information with a template
+    input_variables = item_df.columns.to_list()[:3] + ["genre"]
+    template = PromptTemplate(
+        template="Title: {title}, Genres: {genre}",
+        input_variables=input_variables,
+    )
+    item_df["item_attributes"] = item_df[input_variables].apply(lambda x: template.format(**x), axis=1)
+    # drop original genre columns
+    item_df = item_df.drop(columns=genres)
+    return item_df
+
+
+def filter_data(data_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    데이터 프레임에서 상호작용이 5개 미만인 사용자와 아이템을 제거하여 데이터를 필터링합니다.
+
+    Parameters:
+        data_df (pd.DataFrame): 필터링할 데이터 프레임
+
+    Returns:
+        pd.DataFrame: 필터링된 데이터 프레임
+    """
+    filter_before = -1
+    while filter_before != data_df.shape[0]:
+        filter_before = data_df.shape[0]
+        data_df = data_df.groupby("user_id").filter(lambda x: len(x) >= 5)
+        data_df = data_df.groupby("item_id").filter(lambda x: len(x) >= 5)
+    return data_df
+
+
+def process_interaction_data(data_df: pd.DataFrame, n_neg_items: int = 9) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    data_df.columns = ["user_id", "item_id", "rating", "timestamp"]
+    # sort data_df by timestamp
+    data_df = data_df.sort_values(by=["timestamp"])
+    data_df = filter_data(data_df)
+    clicked_item_set = dict()
+    for user_id, seq_df in data_df.groupby("user_id"):
+        clicked_item_set[user_id] = set(seq_df["item_id"].values.tolist())
+
+    n_items = data_df["item_id"].value_counts().size
+
+    def negative_sample(df):
+        neg_items = np.random.randint(1, n_items + 1, (len(df), n_neg_items))
+        for i, uid in enumerate(df["user_id"].values):
+            user_clicked = clicked_item_set[uid]
+            for j in range(len(neg_items[i])):
+                while neg_items[i][j] in user_clicked or neg_items[i][j] in neg_items[i][:j]:
+                    neg_items[i][j] = np.random.randint(1, n_items + 1)
+            assert len(set(neg_items[i])) == len(neg_items[i]) # check if there is any duplicate item id
+        df["neg_item_id"] = neg_items.tolist()
+        return df
+    
+    def generate_dev_test(data_df: pd.DataFrame) -> tuple[list[pd.DataFrame], pd.DataFrame]:
+        result_dfs = []
+        for idx in range(2):
+            result_df = data_df.groupby("user_id").tail(1).copy() # test_df
+            data_df = data_df.drop(result_df.index) # dev_df
+            result_dfs.append(result_df)
+        return result_dfs, data_df # [test_df, dev_df], train_df
+
+    data_df = negative_sample(data_df)
+    leave_df = data_df.groupby("user_id").head(1) # 초기 상태인 첫번째 행은 따로 분리한다
+    left_df = data_df.drop(leave_df.index) # 이후 데이터는 테스트 셋과 검증 셋(?)으로 나눈다
+
+    [test_df, dev_df], train_df = generate_dev_test(left_df)
+    train_df = pd.concat([leave_df, train_df]).sort_index()
+    return train_df, dev_df, test_df
+
+    def generate
+
+def process_data(dir: str, n_neg_items: int = 9):
+
+    download_data(dir)
+    data_df, item_df, user_df, genre_df = read_data(os.path.join(dir, "raw_data"))
+    user_df = process_user_data(user_df)
+    logger.info(f"Number of users: {user_df.shape[0]}")
+    item_df = process_item_data(item_df)
+    logger.info(f"Number of items: {item_df.shape[0]}")
+    train_df, dev_df, test_df = process_interaction_data(data_df, n_neg_items)
