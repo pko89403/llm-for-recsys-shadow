@@ -4,6 +4,20 @@ import numpy as np
 import pandas as pd
 
 
+def read_json(path: str) -> dict:
+    """
+    JSON 파일을 읽어서 딕셔너리 형태로 반환합니다.
+
+    Args:
+        path (str): JSON 파일의 경로
+
+    Returns:
+        dict: JSON 파일을 읽은 결과로 반환되는 딕셔너리
+    """
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
 def append_his_info(dfs: list[pd.DataFrame], summary: bool = False, neg: bool = False) -> list[pd.DataFrame]:
     """주어진 데이터프레임들에 사용자의 이력 정보를 추가합니다.
         히스토리 정보 추가를 위해 사용자 아이디, 아이템 아이디, 평점, 타임스탬프 컬럼이 필요합니다.
@@ -59,3 +73,31 @@ def append_his_info(dfs: list[pd.DataFrame], summary: bool = False, neg: bool = 
         ret_dfs.append(df)
     del sort_df
     return ret_dfs
+
+class NumpyEncoder(json.JSONEncoder):
+    """NumpyEncoder 클래스는 JSONEncoder를 상속받아 Numpy 배열 및 기타 Numpy 데이터 유형을 JSON으로 직렬화하는 데 사용됩니다.
+
+    Args:
+        json (타입): JSONEncoder 클래스입니다.
+    """
+    def default(self, obj):
+        if isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+                            np.int16, np.int32, np.int64, np.uint8,
+                            np.uint16, np.uint32, np.uint64)):
+            return int(obj)
+        elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
+            return float(obj)
+        
+        elif isinstance(obj, (np.complex_, np.complex64, np.complex128)):
+            return {"readl": obj.real, "imag": obj.imag}
+        
+        elif isinstance(obj, (np.ndarray,)):
+            return obj.tolist()
+        
+        elif isinstance(obj, (np.bool_)):
+            return bool(obj)
+        
+        elif isinstance(obj, (np.void)): 
+            return None
+        
+        return json.JSONEncoder.default(self, obj)
