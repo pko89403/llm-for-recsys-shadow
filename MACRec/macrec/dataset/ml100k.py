@@ -174,7 +174,7 @@ def process_data(dir: str, n_neg_items: int = 9):
     item_df = process_item_data(item_df)
     logger.info(f"Number of items: {item_df.shape[0]}")
     train_df, dev_df, test_df = process_interaction_data(data_df, n_neg_items)
-    logger.info("Number of train interactions: {train_df.shape[0]}")
+    logger.info(f"Number of train interactions: {train_df.shape[0]}")
     dfs = append_his_info([train_df, dev_df, test_df], neg=True)
     logger.info(f"Completed append history information to interactions")
     for df in dfs:

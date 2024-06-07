@@ -4,8 +4,6 @@ from macrec.tasks.base import Task
 from macrec.dataset import ml100k_process_data
 from macrec.utils import init_all_seeds
 
-
-
 class PreprocessTask(Task):
     @staticmethod
     def parse_task_args(parser: ArgumentParser) -> ArgumentParser:
