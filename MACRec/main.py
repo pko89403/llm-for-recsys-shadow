@@ -4,7 +4,7 @@ from loguru import logger
 from argparse import ArgumentParser
 
 from macrec.tasks import PreprocessTask
-
+from macrec.tasks import EvaluateTask
 
 def main():
     init_parser = ArgumentParser()
