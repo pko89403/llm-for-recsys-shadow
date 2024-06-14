@@ -6,14 +6,14 @@ from typing import Any
 from torch import Value
 
 def parse_action(action: str, json_mode: bool = False) -> tuple[str, Any]:
-    """Parse action string to action type and argument
+    """액션 문자열을 액션 유형과 인자로 파싱합니다.
 
     Args:
-        action (str): _description_
-        json_mode (bool, optional): _description_. Defaults to False.
+        action (str): _설명_
+        json_mode (bool, optional): _설명_. 기본값은 False입니다.
 
     Returns:
-        tuple[str, Any]: _description_
+        tuple[str, Any]: _설명_
     """
     if json_mode:
         try:
@@ -144,16 +144,14 @@ def parse_ranking_answer(answer: str | Any, gt_answer: int, n_candidate: int, js
 
 
 def parse_answer(type: str, *args, **kwargs) -> dict[str, Any]:
-    """Parse answer
-
+    """답변을 파싱합니다.
+    
     Args:
-        type (str): _description_
-
+        `type` (`str`): 작업 유형. 다른 인자들은 해당 파싱 함수로 전달됩니다.
     Raises:
-        NotImplementedError: _description_
-
+        `NotImplementedError`: 지원되지 않는 작업 유형입니다.
     Returns:
-        dict[str, Any]: _description_
+        `dict[str, Any]`: 파싱된 답변. `valid`은 답변의 유효성을 나타냅니다. `answer`는 파싱된 답변을 나타냅니다. `message`는 답변이 유효하지 않을 경우의 오류 메시지입니다 (그렇지 않은 경우 포함되지 않음).
     """
     if type == "qa" or type == "chat" or type == "gen":
         return parse_raw_answer(*args, **kwargs)
@@ -166,6 +164,15 @@ def parse_answer(type: str, *args, **kwargs) -> dict[str, Any]:
 
 
 def init_answer(type: str) -> Any:
+    """답변을 초기화합니다.
+    
+    Args:
+        `type` (`str`): 작업 유형.
+    Raises:
+        `NotImplementedError`: 지원되지 않는 작업 유형입니다.
+    Returns:
+        `Any`: 초기화된 답변. 각 작업에 따라 다른 유형의 답변이 반환됩니다.
+    """
     if type == "qa" or type == "chat" or type == "gen":
         return ""
     elif type == "rp":

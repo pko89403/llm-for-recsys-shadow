@@ -82,3 +82,91 @@ class Agent(ABC):
             return OpenSourceLLM(**config)
         else:
             return AnyOpenAILLM(**config)
+
+
+class ToolAgent(Agent):
+    """
+    도구를 필요로하는 에이전트들의 기본 클래스입니다. `forward` 함수를 사용하여 에이전트의 출력을 얻습니다. `required_tools`를 사용하여 에이전트에 필요한 도구를 지정합니다.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.tools: dict[str, Tool] = {}
+        self._history = []
+        self.max_turns: int = 6
+        
+    @run_once
+    def validate_tools(self) -> None:
+        """에이전트가 필요로 하는 도구들을 검증합니다.
+        
+        Raises:
+            `AssertionError`: 필요한 도구가 발견되지 않은 경우.
+        """
+        required_tools = self.required_tools()
+        for tool, tool_type in required_tools.items():
+            assert tool in self.tools, f"도구 {tool}을(를) 찾을 수 없습니다."
+            assert isinstance(self.tools[tool], tool_type), f"도구 {tool}은(는) {tool_type}의 인스턴스여야 합니다."
+    
+    @staticmethod
+    @abstractmethod
+    def required_tools() -> dict[str, type]:
+        """에이전트에 필요한 도구들을 반환합니다.
+        
+        Raises:
+            `NotImplementedError`: 서브클래스에서 구현되어야 합니다.
+        Returns:
+            `dict[str, type]`: 필요한 도구들의 이름과 타입입니다.
+        """
+        raise NotImplementedError("Agent.required_tools() not implemented")
+
+    def get_tools(self, tool_config: dict[str, dict]):
+        assert isinstance(tool_config, dict), "Tool config must be a directory."
+        for tool_name, tool in tool_config.items():
+            assert isinstance(tool, dict), "Config of each tool must be a dictionary."
+            assert "type" in tool, "Tool type not found."
+            assert "config_path" in tool, "Tool config path not found."
+            tool_type = tool["type"]
+            if tool_type not in TOOL_MAP:
+                raise NotImplementedError(f"Docstore {tool_type} not implemented.")
+            config_path = tool["config_path"]
+            if self.dataset is not None:
+                config_path = config_path.format(dataset=self.dataset)
+            self.tools[tool_name] = TOOL_MAP[tool_type](config_path=config_path)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        self.validate_tools()
+        self.reset()
+        return self.forward(*args, **kwargs)
+    
+    @abstractmethod
+    def invoke(self, argument: Any, json_mode: bool) -> str:
+        """에이전트를 인자와 함께 호출합니다.
+        
+        매개변수:
+            `argument` (`Any`): 에이전트에 대한 인자입니다.
+            `json_mode` (`bool`): 인자가 JSON 모드인지 여부입니다.
+        예외:
+            `NotImplementedError`: 서브클래스에서 구현되어야 합니다.
+        반환값:
+            `str`: 호출 과정의 관찰 결과입니다.
+        """
+        raise NotImplementedError("Agent.invoke() not implemented")        
+
+    def reset(self) -> None:
+        self._history = []
+        self.finished = False
+        self.results = None
+        for tool in self.tools.values():
+            tool.reset()
+    
+    @property
+    def history(self) -> str:
+        return format_history(self._history)
+
+    def finish(self, results: Any) -> str:
+        self.results = results
+        self.finished = True
+        return str(self.results)
+    
+    def is_finished(self) -> bool:
+        return self.finished or len(self._history) >= self.max_turns
+    

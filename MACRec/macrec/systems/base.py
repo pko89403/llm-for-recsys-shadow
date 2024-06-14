@@ -31,14 +31,23 @@ class System(ABC):
     
     @property
     def task_type(self) -> str:
-        """작업 유형에 대한 설명을 반환합니다.
-
+        """작업 유형을 반환합니다. 하위 클래스에서 상속하여 더 많은 작업 유형을 지원할 수 있습니다.
+        
         Raises:
-            NotImplementedError: 작업 유형이 구현되지 않은 경우.
-
+            `NotImplementedError`: 지원되지 않는 작업 유형입니다.
         Returns:
-            str: 작업 유형에 대한 설명.
+            `str`: 작업의 유형입니다.
+        하위 클래스 예시:
+        .. code-block:: python
+            class MySystem(System):
+            @property
+            def task_type(self) -> str:
+                if self.task == 'my_task':
+                return '내 작업 설명'
+                else:
+                return super().task_type
         """
+
         if self.task == "qa":
             return "question_answering"
         elif self.task == "rp":
@@ -53,41 +62,41 @@ class System(ABC):
             raise NotImplementedError
 
     def __init__(self, task: str, config_path: str, leak: bool = False, web_demo: bool = False, dataset: Optional[str] = None, *args, **kwargs) -> None:
-            """클래스의 초기화 메서드입니다.
+        """클래스의 초기화 메서드입니다.
 
-            Args:
-                task (str): 작업의 이름입니다.
-                config_path (str): 설정 파일의 경로입니다.
-                leak (bool, optional): 데이터 누수 여부입니다. 기본값은 False입니다.
-                web_demo (bool, optional): 웹 데모 여부입니다. 기본값은 False입니다.
-                dataset (Optional[str], optional): 데이터셋의 이름입니다. 기본값은 None입니다.
-                *args: 추가적인 위치 인수입니다.
-                **kwargs: 추가적인 키워드 인수입니다.
-            """
-            self.task = task
-            assert self.task in self.supported_tasks()
-            self.config = read_json(config_path)
-            if "supported_tasks" in self.config:
-                assert isinstance(self.config["supported_tasks"], list) and self.task in self.config["supported_tasks"], f"Task {self.task} is not supported by the system."
-            self.agent_kwargs = {
-                "system": self,
-            }
-            if dataset is not None:
-                for key, value in self.config.items():
-                    if isinstance(value, str):
-                        self.config[key] = value.format(dataset=dataset, task=self.task)
-                self.agent_kwargs["dataset"] = dataset
-            self.prompts = read_prompts(self.config["agent_prompt"])
-            self.prompts.update(read_prompts(self.config["data_prompt"].format(task=self.task)))
-            if "task_agent_prompt" in self.config:
-                self.prompts.update(read_prompts(self.config["task_agent_prompt"].format(task=self.task)))
-            self.agent_kwargs["prompts"] = self.prompts
-            self.leak = leak
-            self.web_demo = web_demo
-            self.agent_kwargs["web_demo"] = web_demo
-            self.kwargs = kwargs
-            self.init(*args, **kwargs)
-            self.reset(clear=True)
+        Args:
+            task (str): 작업의 이름입니다.
+            config_path (str): 설정 파일의 경로입니다.
+            leak (bool, optional): 데이터 누수 여부입니다. 기본값은 False입니다.
+            web_demo (bool, optional): 웹 데모 여부입니다. 기본값은 False입니다.
+            dataset (Optional[str], optional): 데이터셋의 이름입니다. 기본값은 None입니다.
+            *args: 추가적인 위치 인수입니다.
+            **kwargs: 추가적인 키워드 인수입니다.
+        """
+        self.task = task
+        assert self.task in self.supported_tasks()
+        self.config = read_json(config_path)
+        if "supported_tasks" in self.config:
+            assert isinstance(self.config["supported_tasks"], list) and self.task in self.config["supported_tasks"], f"Task {self.task} is not supported by the system."
+        self.agent_kwargs = {
+            "system": self,
+        }
+        if dataset is not None:
+            for key, value in self.config.items():
+                if isinstance(value, str):
+                    self.config[key] = value.format(dataset=dataset, task=self.task)
+            self.agent_kwargs["dataset"] = dataset
+        self.prompts = read_prompts(self.config["agent_prompt"])
+        self.prompts.update(read_prompts(self.config["data_prompt"].format(task=self.task)))
+        if "task_agent_prompt" in self.config:
+            self.prompts.update(read_prompts(self.config["task_agent_prompt"].format(task=self.task)))
+        self.agent_kwargs["prompts"] = self.prompts
+        self.leak = leak
+        self.web_demo = web_demo
+        self.agent_kwargs["web_demo"] = web_demo
+        self.kwargs = kwargs
+        self.init(*args, **kwargs)
+        self.reset(clear=True)
 
     def log(self, message: str, agent: Optional[Agent] = None, logging: bool = True) -> None:
         """로그를 기록합니다.

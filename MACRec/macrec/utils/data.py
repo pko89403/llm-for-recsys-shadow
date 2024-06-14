@@ -4,6 +4,17 @@ import numpy as np
 import pandas as pd
 
 
+def collator(data: list[dict[str, torch.Tensor]]) -> dict:
+    """데이터로더를 위한 콜레이터입니다.
+
+    Args:
+        `data` (`list[dict[str, torch.Tensor]]`): 데이터의 리스트입니다.
+
+    Returns:
+        `dict`: 콜레이트된 데이터입니다.
+    """
+    return dict((key, [d[key] for d in data]) for key in data[0])
+
 def read_json(path: str) -> dict:
     """
     JSON 파일을 읽어서 딕셔너리 형태로 반환합니다.
