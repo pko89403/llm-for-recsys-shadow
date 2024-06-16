@@ -20,7 +20,7 @@ def format_last_attempt(input: str, scratchpad: str, header: str) -> str:
     """
     return header + f"Input:\n{input}\n" + scratchpad.strip("\n").strip() + "\n(END PREVIOUS TRAIL)\n"
 
-def format_reflection(reflections: list[str], header: str) -> str:
+def format_reflections(reflections: list[str], header: str) -> str:
     """
     주어진 형식에 맞게 reflection 프롬프트를 포맷합니다. 각 reflection의 앞뒤 공백과 개행 문자를 제거하고, 개행 문자를 공백으로 대체합니다. 프롬프트의 시작에 `header`를 추가합니다.
 
