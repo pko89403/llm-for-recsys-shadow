@@ -44,6 +44,20 @@ class Wikipedia(RetrieverTool):
             return f"Error occurred during search: {str(e)}"
 
     def lookup(self, title: str, term: str) -> str:
+        """
+        문서에서 용어를 찾아 해당 결과를 반환합니다.
+
+        매개변수:
+            title (str): 검색할 문서의 제목입니다.
+            term (str): 문서에서 찾을 용어입니다.
+
+        반환값:
+            str: 문서에서 찾은 용어를 포함한 결과입니다.
+
+        예외:
+            없음
+
+        """
         if title not in self.cache:
             return "No title found in search results."
         document: Document = self.cache[title]["document"]
@@ -51,11 +65,11 @@ class Wikipedia(RetrieverTool):
             self.cache[title]["lookup_index"][term] = 0
         else:
             self.cache[title]["lookup_index"][term] += 1
-        lookups = [p for p in document.page_contents.split("\n\n") if term.lower() in p.lower()]
+        lookups = [p for p in document.page_content.split("\n\n") if term.lower() in p.lower()]
         if len(lookups) == 0:
             return f"No results for term {term} in document {title}."
         elif self.cache[title]["lookup_index"][term] >= len(lookups):
             return f"No more results for term {term} in document {title}."
         else:
-            result_prefix = f"(Result {self.cache[title]["lookup_index"][term] + 1} / {len(lookups)})"
-            return f"{result_prefix} {lookups[self.cache[title]["lookup_index"][term]]}"
+            result_prefix = f"(Result {self.cache[title]['lookup_index'][term] + 1} / {len(lookups)})"
+            return f"{result_prefix} {lookups[self.cache[title]['lookup_index'][term]]}"

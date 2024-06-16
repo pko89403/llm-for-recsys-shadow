@@ -1,6 +1,5 @@
 import os 
 import jsonlines
-from regex import P
 from tqdm import tqdm
 from typing import Any
 from loguru import logger
@@ -54,7 +53,7 @@ class EvaluateTask(GenerationTask):
             }, prefix="true")
         
     @property
-    def running_step(self):
+    def running_steps(self):
         return self.steps
     
     def before_generate(self) -> None:

@@ -25,7 +25,7 @@ class RetrieverTool(Tool):
     """
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs):
+        super().__init__(*args, **kwargs)
             
     @abstractmethod
     def search(self, query: str) -> str:

@@ -19,7 +19,9 @@ def main():
     logger.add("logs/{time:YYYY-MM-DD:HH:mm:ss}.log", level="INFO")
 
     try:
-        task = eval(init_args.main + "Task")()
+        source = f"{init_args.main}Task"
+        print(f">>> TASK : {source}\n")
+        task = eval(source)()
     except NameError:
         logger.error(f"Task {init_args.main} not found")
         return

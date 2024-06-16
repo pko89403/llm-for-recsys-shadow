@@ -13,7 +13,7 @@ def init_openai_api(api_config: dict):
             - api_base (str): OpenAI API의 기본 URL입니다.
             - api_key (str): OpenAI API의 인증 키입니다.
     """
-    os.environ["OPENAI_API_BASE"] = api_config["api_base"]
+    # os.environ["OPENAI_API_BASE"] = api_config["api_base"]
     os.environ["OPENAI_API_KEY"] = api_config["api_key"]
 
 

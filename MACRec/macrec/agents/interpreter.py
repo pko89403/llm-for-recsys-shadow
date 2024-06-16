@@ -93,7 +93,7 @@ class Interpreter(ToolAgent):
 
 if __name__ == "__main__":
     from macrec.utils import init_openai_api, read_json, read_prompts
-    init_openai_api(read_json("config/api-config.json"))
+    init_openai_api(read_json("config/api_config.json"))
     interpreter = Interpreter(config_path='config/agents/interpreter.json', prompts=read_prompts('config/prompts/old_system_prompt/react_chat.json'))
     while True:
         user_input = input('Input: ')

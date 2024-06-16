@@ -19,7 +19,7 @@ class GenerationTask(Task):
         parser.add_argument("--data_file", type=str, default=True, help="Dataset file")
         parser.add_argument("--system", type=str, default="react", choices=["react", "reflection", "analyse", "collaboration"], help="System name")
         parser.add_argument("--system_config", type=str, required=True, help="System configuration file")
-        parser.add_argument("--task", type=str, default="rp", choices=["rp" "sr", "gen"], help="Task name")
+        parser.add_argument("--task", type=str, default="rp", choices=["rp", "sr", "gen"], help="Task name")
         parser.add_argument("--max_his", type=int, default=10, help="Max history length")
         return parser
     
