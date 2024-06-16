@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     from macrec.systems import System
 
 class Agent(ABC):
+    """
+    에이전트의 기본 클래스입니다. `forward` 함수를 사용하여 에이전트의 출력을 얻습니다. `get_LLM`을 사용하여 에이전트의 기본 대형 언어 모델을 가져옵니다.
+    """
     def __init__(self, prompts: dict = dict(), prompt_config: Optional[str] = None, web_demo: bool = False, system: Optional["System"] = None, dataset: Optional[str] = None, *args, **kwargs) -> None:
         """Agent를 초기화합니다.
         

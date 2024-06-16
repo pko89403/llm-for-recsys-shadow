@@ -7,6 +7,21 @@ from macrec.tools import TextSummarizer
 from macrec.utils import read_json, get_rm, parse_action
 
 class Interpreter(ToolAgent):
+    """
+    `Interpreter` 클래스는 주어진 입력에 기반하여 명령을 해석하고 응답을 생성하는 에이전트를 나타냅니다.
+    이 클래스는 `ToolAgent` 클래스를 상속받습니다.
+
+    Args:
+        config_path (str): 설정 파일의 경로입니다.
+        *args: 가변 길이 인자 목록입니다.
+        **kwargs: 임의의 키워드 인자입니다.
+
+    Attributes:
+        max_turns (int): 허용되는 최대 턴 수입니다.
+        interpreter (LLM): 해석에 사용되는 언어 모델입니다.
+        json_mode (bool): 인터프리터가 JSON 모드인지 여부를 나타내는 플래그입니다.
+
+    """
     def __init__(self, config_path: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         config = read_json(config_path)

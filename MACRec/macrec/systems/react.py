@@ -6,6 +6,9 @@ from macrec.agents import Manager
 from macrec.utils import parse_answer, parse_action
 
 class ReActSystem(System):
+    """
+    단일 에이전트(ReAct)를 가진 시스템으로, 여러 동작을 순차적으로 수행할 수 있습니다. 에이전트가 완료되거나 최대 동작 수에 도달하거나 컨텍스트의 제한을 초과하면 시스템이 중지됩니다.
+    """
     @staticmethod
     def supported_tasks() -> list[str]:
         return ["rp", "sr", "gen"]

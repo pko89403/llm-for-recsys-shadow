@@ -8,6 +8,12 @@ from macrec.tools import Wikipedia
 from macrec.utils import read_json, parse_action, get_rm
 
 class Searcher(ToolAgent):
+    """
+    Searcher 클래스는 검색 작업을 수행하는 에이전트를 나타냅니다.
+
+    Args:
+        ToolAgent (_type_): 도구 에이전트의 기본 클래스입니다.
+    """
     def __init__(self, config_path: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         tool_config: dict[str, dict] = get_rm(config, "tool_config", {})

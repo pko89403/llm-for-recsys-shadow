@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 
 from macrec.tasks.base import Task
 from macrec.utils import init_openai_api, read_json
-from macrec.systems import ReActSystem
+from macrec.systems import ReActSystem, ReflectionSystem, AnalyseSystem
 
 
 class GenerationTask(Task):
@@ -68,9 +68,9 @@ class GenerationTask(Task):
         if system == "react":
             self.system = ReActSystem(config_path=system_config, **self.system_kwargs)
         elif system == "reflection":
-            raise NotImplementedError
+            self.system = ReflectionSystem(config_path=system_config, **self.system_kwargs)
         elif system == "analyse":
-            raise NotImplementedError
+            self.system = AnalyseSystem(config_path=system_config, **self.system_kwargs)
         elif system == "collarboration":
             raise NotImplementedError
         else:

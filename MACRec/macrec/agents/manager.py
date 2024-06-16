@@ -8,6 +8,9 @@ from macrec.llms import AnyOpenAILLM
 from macrec.utils import format_step, run_once
 
 class Manager(Agent):
+    """
+    매니저 에이전트. 매니저 에이전트는 두 단계로 구성되어 있으며, 먼저 생각 LLM을 프롬프트하고 그 다음으로 액션 LLM을 프롬프트합니다.
+    """
     def __init__(self, thought_config_path: str, action_config_path: str, *args, **kwargs) -> None:
         """매니저 에이전트를 초기화합니다. 매니저 에이전트는 두 단계로 구성되어 있으며, 먼저 생각 LLM을 프롬프트하고 그 다음으로 액션 LLM을 프롬프트합니다.
         

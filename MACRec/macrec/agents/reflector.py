@@ -6,7 +6,6 @@ from langchain.prompts import PromptTemplate
 
 from macrec.agents.base import Agent
 from macrec.llms import AnyOpenAILLM
-from macrec.systems import reflection
 from macrec.utils import format_step, format_reflections, format_last_attempt, read_json, get_rm
 
 class ReflectionStrategy(Enum):

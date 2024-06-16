@@ -1,7 +1,4 @@
 from typing import Any
-
-from torch import log_
-from traitlets import observe
 from loguru import logger
 
 from macrec.agents.base import ToolAgent
@@ -9,6 +6,21 @@ from macrec.tools import InfoDatabase, InteractionRetriever
 from macrec.utils import read_json, get_rm, parse_action
 
 class Analyst(ToolAgent):
+    """
+    `Analyst` 클래스는 다양한 도구를 사용하여 분석을 수행하는 에이전트를 나타냅니다.
+
+    Args:
+        config_path (str): 구성 파일의 경로.
+        *args: 가변 길이 인수 목록.
+        **kwargs: 임의의 키워드 인수.
+
+    Attributes:
+        max_turns (int): 분석의 최대 턴 수.
+        analyst (LLM): 분석에 사용되는 LLM (언어 모델).
+        json_mode (bool): 분석이 JSON 모드인지 여부를 나타냅니다.
+
+    """
+
     def __init__(self, config_path: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         config = read_json(config_path)
