@@ -71,7 +71,7 @@ class EvaluateTask(GenerationTask):
             "max_his": self.args.max_his,
             "topk": self.topks,
         }
-        output_file_name = "_".join(f"{k}={v}" for k, v in output_args.items()]) + '.jsonl'
+        output_file_name = "_".join([f"{k}={v}" for k, v in output_args.items()]) + '.jsonl'
         self.output_file = jsonlines.open(os.path.join(run_dir, output_file_name), mode='w', dumps=NumpyEncoder(ensure_ascii=False).encode, flush=True)
 
     def after_step(self, answer: Any, gt_answer: int | float | str, step: int, record: dict) -> None:

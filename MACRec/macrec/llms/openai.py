@@ -1,5 +1,5 @@
 from loguru import logger
-from langchain.openai import ChatOpenAI, OpenAI
+from langchain_openai import ChatOpenAI, OpenAI
 from langchain.schema import HumanMessage
 
 from macrec.llms.basellm import BaseLLM
