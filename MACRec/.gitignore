@@ -2,3 +2,4 @@ logs
 data
 *.pyc
 __pycache__/
+api_config.json
