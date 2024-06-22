@@ -106,6 +106,12 @@ class ChatSystem(System):
             print(f"System: {response}")
 
 if __name__ == "__main__":
+    import os 
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(current_dir, '..', '..'))
+    print("Change directory to root path: ", root_dir)
+    os.chdir(root_dir)
+
     from macrec.utils import init_openai_api, read_json
     init_openai_api(read_json("config/api-config.json"))
     chat_system = ChatSystem(config_path="config/systems/chat/config.json", task="chat")

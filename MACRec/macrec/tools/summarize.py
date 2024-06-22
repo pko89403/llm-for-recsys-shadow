@@ -17,5 +17,5 @@ class TextSummarizer(Tool):
     def reset(self) -> None:
         pass
     
-    def summarize(self, test: str) -> str:
+    def summarize(self, text: str) -> str:
         return f"Summarized text: {self.pipe(text, **self.generate_kwargs)[0]['summary_text']}"

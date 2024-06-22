@@ -16,6 +16,7 @@ class Searcher(ToolAgent):
     """
     def __init__(self, config_path: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        config = read_json(config_path)
         tool_config: dict[str, dict] = get_rm(config, "tool_config", {})
         self.get_tools(tool_config)
         self.max_turns = get_rm(config, "max_turns", 6)

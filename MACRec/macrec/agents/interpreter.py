@@ -71,7 +71,7 @@ class Interpreter(ToolAgent):
     def command(self, command: str, input: str) -> None:
         logger.debug(f"Command: {command}")
         log_head = ""
-        action_Type, argument = parse_action(command, json_mode=self.json_mode)
+        action_type, argument = parse_action(command, json_mode=self.json_mode)
         if action_type.lower() == "summarize":
             observation = self.summarizer.summarize(text=input)
             log_head = f':violet[Summarize input...]\n- '
@@ -91,9 +91,9 @@ class Interpreter(ToolAgent):
     def forward(self, input: str, *args, **kwargs) -> str:
         tokens = input.split()
         if len(tokens) > 100:
-            truncate_input = "..." + " ".join(tokens[-100:])
+            truncated_input = "..." + " ".join(tokens[-100:])
         else:
-            truncate_input = input
+            truncated_input = input
         while not self.is_finished():
             command = self._prompt_interpreter(input=truncated_input)
             self.command(command, input=input)
