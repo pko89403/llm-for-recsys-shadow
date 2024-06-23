@@ -124,16 +124,16 @@ class GenerationTask(Task):
             `NotImplementedError`: Subclasses should implement this method.
         """
         raise NotImplementedError
-    
+
     @abstractmethod
     def after_generate(self) -> None:
         """The process to run after generating.
-        
+
         Raises:
             `NotImplementedError`: Subclasses should implement this method.
         """
         raise NotImplementedError
-    
+
     def generate(self, data: list[tuple[str, int | float | str, pd.Series]], steps: int = 2):
         self.before_generate()
         with tqdm(total=len(data)) as pbar:
@@ -146,7 +146,7 @@ class GenerationTask(Task):
                     self.after_step(answer=self.system(), gt_answer=gt_answer, step=i, record=record)
                 self.after_iteration(answer=self.system.answer, gt_answer=gt_answer, record=record, pbar=pbar)
                 pbar.update(1)
-        self.after_generate()                
+        self.after_generate()
 
     def run(self, api_config: str, dataset: str, data_file: str, system: str, system_config: str, task: str, max_his: int):
         if dataset == "None":
