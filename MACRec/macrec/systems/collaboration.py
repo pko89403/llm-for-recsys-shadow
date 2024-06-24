@@ -32,7 +32,7 @@ class CollaborationSystem(System):
             try:
                 agent_class = globals()[agent]
                 assert issubclass(agent_class, Agent), f"Agent {agent} is not a subclass of Agent."
-                self.agents[agent] = agent_class(**agent_config), **self.agent_kwargs)
+                self.agents[agent] = agent_class(**agent_config, **self.agent_kwargs)
             except KeyError:
                 raise ValueError(f"Agent {agent} is not supported.")
         assert "Manager" in self.agents, "Manager is required."
@@ -124,7 +124,7 @@ class CollaborationSystem(System):
                 log_head = ':violet[Finish with answer]:\n- '
             else:
                 assert "message" in parse_result, "Invalid parse result."
-                observation = f"{parse_result["message"]} Valid Action examples are {self.manager.valid_action_example}."
+                observation = f"{parse_result['message']} Valid Action examples are {self.manager.valid_action_example}."
         elif action_type.lower() == "analyse":
             if self.analyst is None:
                 observation = "Analyst is not configured. Cannot execute the action 'Analyse'."

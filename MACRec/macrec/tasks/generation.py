@@ -8,13 +8,13 @@ from argparse import ArgumentParser
 
 from macrec.tasks.base import Task
 from macrec.utils import init_openai_api, read_json
-from macrec.systems import ReActSystem, ReflectionSystem, AnalyseSystem
+from macrec.systems import ReActSystem, ReflectionSystem, AnalyseSystem, CollaborationSystem
 
 
 class GenerationTask(Task):
     @staticmethod
     def parse_task_args(parser: ArgumentParser) -> ArgumentParser:
-        parser.add_argument("--api_config", type=str, default="config/api_config.json", help="The path to the API configuration file")
+        parser.add_argument("--api_config", type=str, default="config/api-config.json", help="The path to the API configuration file")
         parser.add_argument("--dataset", type=str, default=None, help="Dataset name")
         parser.add_argument("--data_file", type=str, default=True, help="Dataset file")
         parser.add_argument("--system", type=str, default="react", choices=["react", "reflection", "analyse", "collaboration"], help="System name")
@@ -44,6 +44,12 @@ class GenerationTask(Task):
                 target_item_attributes=df["target_item_attributes"][i]
             ), df["rating"][i], df.iloc[i]) for i in tqdm(range(len(df)), desc="Loading data")]
         elif self.task == "sr":
+            print("FUCK")
+            print("---")
+            print(df)
+            print("---")
+            print(data_prompt)
+            print("---")
             candidate_example: str = df["candidate_item_attributes"][0]
             self.n_candidate = len(candidate_example.split("\n"))
             return [(data_prompt.format(
@@ -65,14 +71,15 @@ class GenerationTask(Task):
             raise NotImplementedError
         
     def get_system(self, system: str, system_config: str):
+        print(system)
         if system == "react":
             self.system = ReActSystem(config_path=system_config, **self.system_kwargs)
         elif system == "reflection":
             self.system = ReflectionSystem(config_path=system_config, **self.system_kwargs)
         elif system == "analyse":
             self.system = AnalyseSystem(config_path=system_config, **self.system_kwargs)
-        elif system == "collarboration":
-            raise NotImplementedError
+        elif system == "collaboration":
+            self.system = CollaborationSystem(config_path=system_config, **self.system_kwargs)
         else:
             raise NotImplementedError
         
