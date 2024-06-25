@@ -107,6 +107,8 @@ class Interpreter(ToolAgent):
         return self(input=argument)
 
 if __name__ == "__main__":
+    import os 
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     from macrec.utils import init_openai_api, read_json, read_prompts
     init_openai_api(read_json("config/api-config.json"))
     interpreter = Interpreter(config_path='config/agents/interpreter.json', prompts=read_prompts('config/prompts/old_system_prompt/react_chat.json'))

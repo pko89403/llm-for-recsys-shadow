@@ -85,6 +85,7 @@ def process_item_data(item_df: pd.DataFrame) -> pd.DataFrame:
                     'Childrens', 'Comedy', 'Crime', 'Documentary', 'Drama',
                     'Fantasy', 'Film-Noir', 'Horror', 'Musical', 'Mystery',
                     'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
+    genres = item_df.columns.to_list()[5:] # 'unknown', 'Action', 'Adventure', ...
     item_df = item_df.drop(columns=["IMDb_URL"])
     item_df = item_df.set_index("item_id")
     # set video_release_data to unknown if it is null
@@ -92,7 +93,6 @@ def process_item_data(item_df: pd.DataFrame) -> pd.DataFrame:
     # set release_date to unknown if it is null
     item_df["release_date"] = item_df["release_date"].fillna("unknown")
     # set the genre to be a list of genres
-    genres = item_df.columns.to_list()[5:] # 'unknown', 'Action', 'Adventure', ...
     def get_genre(x: pd.Series) -> list[str]:
         return "|".join([genre for genre, value in x.items() if value == 1])
     item_df["genre"] = item_df[genres].apply(lambda x: get_genre(x), axis=1)
@@ -196,8 +196,8 @@ def process_data(dir: str, n_neg_items: int = 9):
         # add item attributes
         def candidate_attr(x):
             candidate_item_attributes = []
-            for item_id, item_attributes in zip(x, item_df.loc[x]["item_attributes"]):
-                candidate_item_attributes.append(f"{item_attributes} (item_id: {item_id})")
+            for item_id, item_attributes in zip(x, item_df.loc[x]['item_attributes']):
+                candidate_item_attributes.append(f'{item_id}: {item_attributes}')
             return candidate_item_attributes
         df["candidate_item_attributes"] = df["candidate_item_id"].apply(lambda x: candidate_attr(x))
         df["candidate_item_attributes"] = df["candidate_item_attributes"].apply(lambda x: "\n".join(x))
@@ -213,8 +213,11 @@ def process_data(dir: str, n_neg_items: int = 9):
         all_df = all_df.reset_index(drop=True)
         logger.info("Outputing data to csv files...")
         user_df.to_csv(os.path.join(dir, "user.csv"))
-        item_df.to_csv(os.path.join(dir, "item.csv"), index=False)
+        item_df.to_csv(os.path.join(dir, "item.csv"))
         train_df.to_csv(os.path.join(dir, "train.csv"), index=False)
         dev_df.to_csv(os.path.join(dir, "dev.csv"), index=False)
         test_df.to_csv(os.path.join(dir, "test.csv"), index=False)
         all_df.to_csv(os.path.join(dir, "all.csv"), index=False)
+
+if __name__ == '__main__':
+    process_data(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'ml-100k'))
