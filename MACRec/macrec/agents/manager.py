@@ -63,9 +63,12 @@ class Manager(Agent):
         else:
             return ""
     
-    @run_once
-    def _log_prompt(self, prompt: str) -> None:
-        logger.debug(f"Manager Prompt: {prompt}")
+    def _log_thought_prompt(self, prompt: str) -> None:
+        logger.debug(f"Manager Thought Prompt: {prompt}")
+
+    def _log_action_prompt(self, prompt: str) -> None:
+        logger.debug(f"Manager Action Prompt: {prompt}")
+
     
     def _build_manager_prompt(self, **kwargs) -> str:
         return self.manager_prompt.format(
@@ -75,12 +78,13 @@ class Manager(Agent):
 
     def _prompt_thought(self, **kwargs) -> str:
         thought_prompt = self._build_manager_prompt(**kwargs)
-        self._log_prompt(thought_prompt)
+        self._log_thought_prompt(thought_prompt)
         thought_response = self.thought_llm(thought_prompt)
         return format_step(thought_response)
     
     def _prompt_action(self, **kwargs) -> str:
         action_prompt = self._build_manager_prompt(**kwargs)
+        self._log_action_prompt(action_prompt)
         action_response = self.action_llm(action_prompt)
         return format_step(action_response)
     

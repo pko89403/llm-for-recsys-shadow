@@ -100,3 +100,60 @@ class ReActSystem(System):
             self.step()
         return self.answer
             
+if __name__ == "__main__":
+    import os
+    import pandas as pd
+    from macrec.utils import init_openai_api, read_json
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(current_dir, '..', '..'))
+    
+    print("Change directory to root path: ", root_dir)
+    os.chdir(root_dir)
+
+    init_openai_api(read_json("config/api-config.json"))
+    config_path = "config/systems/react/config.json"
+    task = "rp"
+    logger.info("##### Task:")
+    logger.info(f'```\n{task}\n```')
+
+    system = ReActSystem(
+        task=task,
+        config_path=config_path,
+        leak=False,
+        web_demo=False,
+        dataset="ml-100k",
+    )
+
+    data = pd.read_csv("data/ml-100k/test.csv")
+    max_his = 5 if task == 'sr' else 10
+    data['history'] = data['history'].apply(lambda x: '\n'.join(x.split('\n')[-max_his:]))
+    length = len(data)
+    index = 0
+    reset_data = False
+    
+    data_sample = data.iloc[index]
+    data_prompt = system.prompts[f"data_prompt"]
+    logger.info("##### Data Prompt:")
+    logger.info(f'```\n{data_prompt}\n```')
+
+    logger.info("##### Target Item Attributes:")
+    logger.info(f'```\n{data_sample["target_item_attributes"]}\n```')
+    
+    gt_answer = data_sample['rating']
+    logger.info(f'##### Ground Truth Rating: {gt_answer}')
+    system_input = data_prompt.format(
+        user_id=data_sample['user_id'],
+        user_profile=data_sample['user_profile'],
+        history=data_sample['history'],
+        target_item_id=data_sample['item_id'],
+        target_item_attributes=data_sample['target_item_attributes']
+    )
+    logger.info('##### Data Prompt:')
+    logger.info(f'```\n{system_input}\n```')
+    
+    system.set_data(input=system_input, context='', gt_answer=gt_answer, data_sample=data_sample)
+    system.reset(clear=True)
+    
+    answer = system()
+    logger.info(f'**Answer**: `{answer}`, Ground Truth: `{gt_answer}`')

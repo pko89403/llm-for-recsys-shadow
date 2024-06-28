@@ -106,7 +106,7 @@ class Analyst(ToolAgent):
                 log_head = f':violet[Look up ItemInfo of item] :red[{query_item_id}]:violet[...]\n- '
             except ValueError or TypeError:
                 observation = f"Invalid item id: {argument}."
-        elif action_type.lower() == "userhistory":
+        elif action_type.lower() == "userhistory":            
             valid = True
             if self.json_mode:
                 if not isinstance(argument, list) or len(argument) != 2:
@@ -129,6 +129,8 @@ class Analyst(ToolAgent):
                 observation = self.interaction_retriever.user_retrieve(user_id=query_user_id, k=k)
                 log_head = f':violet[Look up UserHistory of user] :red[{query_user_id}] :violet[with at most] :red[{k}] :violet[items...]\n- '
         elif action_type.lower() == "itemhistory":
+            self.observation(message=f"ITEMHISTORY!!!!!!!!!!!!!!!!!!!!!!!!{argument}")
+            
             valid = True
             if self.json_mode:
                 if not isinstance(argument, list) or len(argument) != 2:
@@ -168,6 +170,7 @@ class Analyst(ToolAgent):
         assert "user_id" in self.system.data_sample, "User id is not provided."
         assert "item_id" in self.system.data_sample, "Item id is not provided."
         self.interaction_retriever.reset(user_id=self.system.data_sample["user_id"], item_id=self.system.data_sample["item_id"])
+        
         while not self.is_finished():
             command = self._prompt_analyst(id=id, analyse_type=analyse_type)
             self.command(command)
@@ -178,7 +181,7 @@ class Analyst(ToolAgent):
     def invoke(self, argument: Any, json_mode: bool) -> str:
         if json_mode:
             if not isinstance(argument, list) or len(argument) != 2:
-                observation = "The argument of the action `Analyse` should be a list with two elements: analyze type (user or item) and id."
+                observation = "The argument of the action `Analyse` should be a list with two elements: analyse type (user or item) and id."
                 return observation
             else:
                 analyse_type, id = argument
@@ -215,14 +218,20 @@ class Analyst(ToolAgent):
 if __name__ == "__main__":
     from langchain.prompts import PromptTemplate
     from macrec.utils import init_openai_api, read_json, read_prompts
+    import pandas as pd
+    from macrec.systems import AnalyseSystem
+    
     init_openai_api(read_json("config/api-config.json"))
     prompts = read_prompts('config/prompts/old_system_prompt/react_analyst.json')
     for prompt_name, prompt_template in prompts.items():
         if isinstance(prompt_template, PromptTemplate) and 'task_type' in prompt_template.input_variables:
             prompts[prompt_name] = prompt_template.partial(task_type='rating prediction')
-            
-    print(f"Prompts :\n {prompts}")
-    analyst = Analyst(config_path='config/agents/analyst.json', dataset="ml-100k", prompts=prompts)
-    user_id, item_id = list(map(int, input('User id and item id: ').split()))
-    result = analyst(user_id=user_id, item_id=item_id)
+
+    analyst = Analyst(config_path='config/agents/analyst.json', dataset="ml-100k", prompts=prompts, system=AnalyseSystem)
+    test_dataset = pd.read_csv("data/ml-100k/test.csv")
+    analyst.system.data_sample = test_dataset[:1].to_dict(orient='records')[0]
+    
+    analyse_type, id = list(map(str, input('analyse_type(user/item), id: ').split()))
+    
+    result = analyst(id=id, analyse_type=analyse_type)
     

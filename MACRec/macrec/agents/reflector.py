@@ -89,6 +89,21 @@ class Reflector(Agent):
         return format_step(reflection_response)
     
     def forward(self, input: str, scratchpad: str, *args, **kwargs) -> str:
+        """
+        Reflector 에이전트의 전방 통과.
+
+        Args:
+            input (str): 입력 문자열.
+            scratchpad (str): 스크래치패드 문자열.
+            *args: 가변 길이 인자 목록.
+            **kwargs: 임의의 키워드 인자.
+
+        Returns:
+            str: 반사 문자열.
+
+        Raises:
+            ValueError: 반사 전략이 알 수 없는 경우.
+        """
         logger.trace("Running Reflection strategy...")
         if self.reflection_strategy == ReflectionStrategy.LAST_ATTEMPT:
             self.reflections = [scratchpad]
