@@ -129,8 +129,6 @@ class Analyst(ToolAgent):
                 observation = self.interaction_retriever.user_retrieve(user_id=query_user_id, k=k)
                 log_head = f':violet[Look up UserHistory of user] :red[{query_user_id}] :violet[with at most] :red[{k}] :violet[items...]\n- '
         elif action_type.lower() == "itemhistory":
-            self.observation(message=f"ITEMHISTORY!!!!!!!!!!!!!!!!!!!!!!!!{argument}")
-            
             valid = True
             if self.json_mode:
                 if not isinstance(argument, list) or len(argument) != 2:

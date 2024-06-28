@@ -42,6 +42,8 @@ def check_json(config_path: str) -> bool:
         st.markdown(f'`{config_path}` requires `{config["model_path"]}` models.')
         return False
     if 'model_path' in config:
+        if config["model_path"] == "t5-base":
+            return True
         st.markdown(f'`{config_path}` requires `{config["model_path"]}` models.')
         return False
     return scan_dict(config)

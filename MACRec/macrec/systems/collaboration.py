@@ -1,4 +1,5 @@
 import json
+from math import log
 from typing import Any, Optional
 from loguru import logger
 
@@ -98,7 +99,7 @@ class CollaborationSystem(System):
         # Think
         logger.debug(f"Step {self.step_n}:")
         self.scratchpad += f"\nThought {self.step_n}:"
-        thought = self.manager(scratchpad=self.scratchpad, tage="thought", **self.manager_kwargs)
+        thought = self.manager(scratchpad=self.scratchpad, stage="thought", **self.manager_kwargs)
         self.scratchpad += " " + thought
         self.log(f"**Thought {self.step_n}**: {thought}", agent=self.manager)
 
