@@ -1,7 +1,8 @@
 ## MACRec: a Multi-Agent Collaboration Framework for Recommendation
 
-This is shadow implementation of [MACRec](https://github.com/wzf2000). ( fix several bugs )
-Only supports OpenAI API and ml-100k dataset
+- This is shadow implementation of [MACRec](https://github.com/wzf2000/MACRec). ( fix several bugs )
+- Implement OpenAI API and ml-100k dataset only.
+- Not implemented for train and feedback
 
 ## Install Requirements
 ```sh
