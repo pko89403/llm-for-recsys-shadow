@@ -9,6 +9,14 @@
 pip install -r requirements.txt # include unecessary also sorry about that
 ```
 
+## api-config.json
+append config/api-config.json
+```json
+{
+    "api_key": "OPENAPI_API_KEY"
+}
+```
+
 ## Run with the command line
 
 ### Run Analyst Agent demo
