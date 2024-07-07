@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "e4srec"
+version = "0.1.0"
+description = ""
+authors = ["pko89403@gmail.com <pko89403@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+torch = "2.2.2"
+peft = "^0.11.1"
+transformers = "^4.42.3"
+accelerate = "^0.32.1"
+bitsandbytes = "0.42"
+appdirs = "^1.4.4"
+loralib = "^0.1.2"
+black = "^24.4.2"
+datasets = "^2.20.0"
+fire = "^0.6.0"
+sentencepiece = "^0.2.0"
+wandb = "^0.17.4"
+scipy = "^1.14.0"
+sentence-transformers = "^3.0.1"
+scikit-learn = "^1.5.1"
+pandas = "^2.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
