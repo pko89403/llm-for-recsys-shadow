@@ -2,7 +2,7 @@
 name = "e4srec"
 version = "0.1.0"
 description = ""
-authors = ["pko89403@gmail.com <pko89403@gmail.com>"]
+authors = ["skiiwoo <pko89403@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
