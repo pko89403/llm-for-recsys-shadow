@@ -23,6 +23,7 @@ scipy = "^1.14.0"
 sentence-transformers = "^3.0.1"
 scikit-learn = "^1.5.1"
 pandas = "^2.2.2"
+loguru = "^0.7.2"
 
 
 [build-system]

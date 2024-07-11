@@ -1,6 +1,6 @@
 #!/bin/sh
 
-torchrun --nproc_per_node=2 --master_port=1234 finetune.py \
+python finetune.py \
     --base_model garage-bAInd/Platypus2-70B-instruct \
     --data_path ML1M \
     --task_type general \
