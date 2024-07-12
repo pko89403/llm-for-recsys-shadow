@@ -5,6 +5,7 @@ import pickle
 from dataclasses import dataclass, field
 
 import torch
+import transformers
 from transformers import HfArgumentParser, TrainingArguments, set_seed
 from loguru import logger
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     gradient_accumulation_steps = model_args.batch_size // model_args.micro_batch_size
     prompter = Prompter(model_args.prompt_template_name)
     
-    device_map = "auto"
+    device_map = "cpu"
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     ddp = world_size != 1
     if ddp:
@@ -98,6 +99,36 @@ if __name__ == "__main__":
         user_embeds=user_embed,
         input_embeds=item_embed,
     )
-
     logger.info(model)
-    # train(model_args, training_args)
+    
+    trainer = transformers.Trainer(
+        model=model,
+        train_dataset=dataset,
+        eval_dataset=None,
+        args=transformers.TrainingArguments(
+            per_device_train_batch_size=model_args.micro_batch_size,
+            use_cpu=True,
+            gradient_accumulation_steps=gradient_accumulation_steps,
+            warmup_steps=training_args.warmup_steps,
+            num_train_epochs=training_args.num_train_epochs,
+            learning_rate=training_args.learning_rate,
+            fp16=False,
+            logging_steps=1,
+            optim="adamw_torch",
+            eval_strategy="steps" if model_args.val_set_size > 0 else "no",
+            save_strategy="steps",
+            eval_steps=200 if model_args.val_set_size > 0 else None,
+            save_steps=1000,
+            lr_scheduler_type=model_args.lr_scheduler,
+            output_dir=training_args.output_dir,
+            save_total_limit=2,
+            load_best_model_at_end=True if model_args.val_set_size > 0 else False,
+            ddp_find_unused_parameters=False if ddp else None,
+            group_by_length=training_args.group_by_length,
+            report_to="none",
+            run_name=None,
+        ),
+        data_collator=data_collator,
+    )
+    
+    trainer.train()

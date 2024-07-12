@@ -60,8 +60,8 @@ class BipartiteGraphCollator:
             user, items, labels = zip(*batch)
             bs = len(user)
             max_len = max([len(item) for item in items])
-            inputs = [user[i] + items[i] + [0] * (max_len - len(items[i])) for i in range(bs)] # user + items + padding
-            inputs_mask = [[1] + [1] * len(items(i)) + [0] * (max_len - len(items[i])) for i in range(bs)]
+            inputs = [[user[i]] + items[i] + [0] * (max_len - len(items[i])) for i in range(bs)] # user + items + padding
+            inputs_mask = [[1] + [1] * len(items[i]) + [0] * (max_len - len(items[i])) for i in range(bs)]
             labels = [[label] for label in labels]
             inputs, inputs_mask, labels = torch.LongTensor(inputs), torch.LongTensor(inputs_mask), torch.LongTensor(labels)
 

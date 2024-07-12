@@ -88,7 +88,8 @@ class LLM4Rec(nn.Module):
             self.args["base_model"],
             cache_dir=self.args["cache_dir"],
             device_map=self.args["device_map"]
-        )
+        ).to("cpu")
+        self.model.config.output_hidden_states = True  # Ensure hidden states are output
         self.model = prepare_model_for_kbit_training(self.model)
         self.model = get_peft_model(self.model, peft_config)
         self.model.print_trainable_parameters()
@@ -134,27 +135,33 @@ class LLM4Rec(nn.Module):
             self.model.config.hidden_size
         )
         self.score = nn.Linear(self.model.config.hidden_size, self.output_dim, bias=False)
+        self.token_embeds = self.model.get_input_embeddings()
+        
 
     def predict(self, inputs, inputs_mask):
         bs = inputs.shape[0]
-        instruct_embeds = self.model.model.embed_tokens(self.instruct_ids.cuda()).expand(bs, -1, -1)
-        response_embeds = self.model.model.embed_tokens(self.response_ids.cuda()).expand(bs, -1, -1)
-        instruct_mask = self.instruct_mask.cuda().expand(bs, -1)
-        response_mask = self.response_mask.cuda().expand(bs, -1)
+        instruct_embeds = self.token_embeds(self.instruct_ids.to("cpu")).expand(bs, -1, -1)
+        response_embeds = self.token_embeds(self.response_ids.to("cpu")).expand(bs, -1, -1)
+        instruct_mask = self.instruct_mask.to("cpu").expand(bs, -1)
+        response_mask = self.response_mask.to("cpu").expand(bs, -1)
+        # instruct_embeds = self.token_embeds(self.instruct_ids.cuda()).expand(bs, -1, -1)
+        # response_embeds = self.token_embeds(self.response_ids.cuda()).expand(bs, -1, -1)
+        # instruct_mask = self.instruct_mask.cuda().expand(bs, -1)
+        # response_mask = self.response_mask.cuda().expand(bs, -1)
 
         if self.task_type == "general":
             # inputs [user, item1, item2, ... ]
-            users = self.user_proj(self.user_embeds(inputs[:, 0].unsqueeze(1)))
-            items = self.input_proj(self.input_embeds(inputs[:, 1:]))
+            users = self.user_proj(self.user_embeds(inputs[:, 0].unsqueeze(1).to("cpu")))
+            items = self.input_proj(self.input_embeds(inputs[:, 1:].to("cpu")))
             inputs = torch.cat([users, items], dim=1)
         else:
-            inputs = self.input_proj(self.input_embeds(inputs))
+            inputs = self.input_proj(self.input_embeds(inputs.to("cpu")))
         inputs = torch.cat([instruct_embeds, inputs, response_embeds], dim=1)
-        attention_mask = torch.cat([instruct_mask, inputs_mask, response_mask], dim=1)
+        attention_mask = torch.cat([instruct_mask, inputs_mask.to("cpu"), response_mask], dim=1)
         assert attention_mask.size()[0] == inputs.size()[0] and attention_mask.size()[1] == inputs.size()[1]
 
         outputs = self.model(inputs_embeds=inputs, attention_mask=attention_mask, return_dict=True)
-        pooled_output = outputs.last_hidden_state[:, -1]
+        pooled_output = outputs.hidden_states[-1][:, -1] # last_hidden_state, last token
         pooled_logits = self.score(pooled_output)
 
         return outputs, pooled_logits.view(-1, self.output_dim)
