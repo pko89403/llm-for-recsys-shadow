@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         pass
-        # print((model_args, training_args))
 
     gradient_accumulation_steps = model_args.batch_size // model_args.micro_batch_size
     prompter = Prompter(model_args.prompt_template_name)
@@ -63,6 +62,7 @@ if __name__ == "__main__":
     if len(model_args.wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = model_args.wandb_log_model
 
+    logger.info(f"Task Type : {model_args.task_type}")
     if model_args.task_type == "general":
         dataset = BipartiteGraphDataset(
             dataset=os.path.join("datasets", model_args.task_type, model_args.data_path)
@@ -70,11 +70,16 @@ if __name__ == "__main__":
 
         user_emb_path = os.path.join("datasets", model_args.task_type, model_args.data_path, "VanillaMF_user_embed.pkl")
         user_embed = pickle.load(open(user_emb_path, "rb"))
+        
         item_emb_path = os.path.join("datasets", model_args.task_type, model_args.data_path, "VanillaMF_item_embed.pkl")
         item_embed = pickle.load(open(item_emb_path, "rb")) # torch.Size([3043, 64])
         item_embed = torch.cat([item_embed.mean(dim=0).unsqueeze(0), item_embed], dim=0) # torch.Size([3044, 64]) COLD START ITEM
-
+        
         data_collator = BipartiteGraphCollator()
+        
+        logger.info(f"Total User Count : {dataset.n_user}, Total Item Count : {dataset.m_item}")
+        logger.info(f"user_embed shape : {user_embed.shape}, item_embed shape : {item_embed.shape}")
+        logger.info(f"Example Train Data Sample at index 0 : {dataset[0]}")
     elif model_args.task_type == "sequential":
         pass
 
@@ -94,5 +99,5 @@ if __name__ == "__main__":
         input_embeds=item_embed,
     )
 
-
+    logger.info(model)
     # train(model_args, training_args)

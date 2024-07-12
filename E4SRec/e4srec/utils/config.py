@@ -57,7 +57,7 @@ class ModelArguments:
         metadata={"help": "The dropout rate for local attention"}
     )
     lora_target_modules: List[str] = field(
-        default_factory=lambda: ["gate_proj", "down_proj", "up_proj"],
+        default_factory=lambda: ["q_proj", "v_proj"],
         metadata={"help": "The target modules for local attention"}
     )
     train_on_inputs: bool = field(

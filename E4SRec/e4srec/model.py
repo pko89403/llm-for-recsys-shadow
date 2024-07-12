@@ -22,6 +22,7 @@ class LLM4Rec(nn.Module):
         self.input_dim, self.output_dim = args["input_dim"], args["output_dim"]
 
         logger.info(f"Initializing language decoder ...")
+        logger.info(f"{args['lora_target_modules']}")
         # add the lora module
         peft_config = LoraConfig(
             task_type="FEATURE_EXTRACTION",
@@ -31,7 +32,6 @@ class LLM4Rec(nn.Module):
             target_modules=self.args["lora_target_modules"],
             bias="none",
         )
-
 
         """
             https://discuss.huggingface.co/t/task-type-parameter-of-loraconfig/52879/4
@@ -106,12 +106,13 @@ class LLM4Rec(nn.Module):
             truncation=True, padding=False,
             return_tensors="pt", add_special_tokens=False
         ).values()
+        logger.info(f"instrunction_text : {self.args['instruction_text'][0]} >>> tokenizer >>> instruct_ids : {self.instruct_ids}")
         self.response_ids, self.response_mask = self.tokenizer(
             self.args["instruction_text"][1],
             truncation=True, padding=False,
             return_tensors="pt", add_special_tokens=False
         ).values()
-
+        logger.info(f"response_text : {self.args['instruction_text'][1]} >>> tokenizer >>> response_ids : {self.response_ids}")
         logger.info("Language decoder initialized.")
 
         self.task_type = args["task_type"]
